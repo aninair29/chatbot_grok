@@ -32,15 +32,18 @@ if prompt := st.chat_input("Type your message..."):
         response = requests.post(url, headers=headers, json=payload)
         response.raise_for_status()
         data = response.json()
-        st.write("Raw Grok response:", data)  # show full JSON
 
         reply = data["choices"][0]["message"]["content"]
         st.session_state["messages"].append({"role": "assistant", "content": reply})
         st.chat_message("assistant").write(reply)
 
     except requests.exceptions.HTTPError as e:
-        # Show full error body from Grok
-        st.error(f"Grok API error: {e}")
-        st.write("Error response body:", response.text)
+        # Show a friendly message instead of raw JSON
+        if response.status_code == 403:
+            st.error("⚠️ Service unavailable — please try again later.")
+        else:
+            st.error(f"Grok API error: {e}")
+            # Optional: log raw response for debugging
+            st.write("Error response body:", response.text)
     except Exception as e:
         st.error(f"Unexpected error: {e}")
