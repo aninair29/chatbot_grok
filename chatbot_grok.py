@@ -7,17 +7,19 @@ GROK_API_KEY = os.getenv("GROK_API_KEY")
 
 st.title("💬 Grok Chatbot")
 
-# Keep chat history locally
-if "history" not in st.session_state:
-    st.session_state["history"] = []
+# Keep chat history
+if "messages" not in st.session_state:
+    st.session_state["messages"] = [
+        {"role": "system", "content": "You are a helpful assistant."}
+    ]
 
 # Display past messages
-for role, content in st.session_state["history"]:
-    st.chat_message(role).write(content)
+for msg in st.session_state["messages"]:
+    st.chat_message(msg["role"]).write(msg["content"])
 
 # User input
 if prompt := st.chat_input("Type your message..."):
-    st.session_state["history"].append(("user", prompt))
+    st.session_state["messages"].append({"role": "user", "content": prompt})
     st.chat_message("user").write(prompt)
 
     # Grok API call
@@ -27,8 +29,8 @@ if prompt := st.chat_input("Type your message..."):
         "Content-Type": "application/json"
     }
     payload = {
-        "model": "grok-4.20-multi-agent-beta-0309",  # Grok model name
-        "input": prompt  # Grok expects 'input', not 'messages'
+        "model": "grok-4.20-multi-agent-beta-0309",
+        "messages": st.session_state["messages"]
     }
 
     try:
@@ -36,16 +38,12 @@ if prompt := st.chat_input("Type your message..."):
         response.raise_for_status()
         data = response.json()
 
-        # Debug: show raw response so you can confirm structure
+        # Debug: show raw response
         st.write("Raw Grok response:", data)
 
-        # Extract reply (adjust based on actual response JSON)
-        if "output" in data:
-            reply = data["output"][0]["content"]
-        else:
-            reply = "Unexpected response format."
-
-        st.session_state["history"].append(("assistant", reply))
+        # Extract reply from choices
+        reply = data["choices"][0]["message"]["content"]
+        st.session_state["messages"].append({"role": "assistant", "content": reply})
         st.chat_message("assistant").write(reply)
 
     except requests.exceptions.RequestException as e:
