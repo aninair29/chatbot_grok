@@ -24,7 +24,7 @@ if prompt := st.chat_input("Type your message..."):
         "Content-Type": "application/json"
     }
     payload = {
-        "model": "grok-4.20-multi-agent-beta-0309",
+        "model": "grok-4.20-beta-0309-reasoning",
         "messages": st.session_state["messages"]
     }
 
