@@ -27,7 +27,7 @@ if prompt := st.chat_input("Type your message..."):
         "Content-Type": "application/json"
     }
     payload = {
-        "model": "grok-4.20-multi-agent-beta-0309",  # Actual Grok model name
+        "model": "grok-4.20-multi-agent-beta-0309",  # Grok model name
         "input": prompt  # Grok expects 'input', not 'messages'
     }
 
@@ -36,8 +36,15 @@ if prompt := st.chat_input("Type your message..."):
         response.raise_for_status()
         data = response.json()
 
-        # Extract reply (structure may vary slightly, check Grok docs)
-        reply = data["output"][0]["content"]  # Grok returns 'output'
+        # Debug: show raw response so you can confirm structure
+        st.write("Raw Grok response:", data)
+
+        # Extract reply (adjust based on actual response JSON)
+        if "output" in data:
+            reply = data["output"][0]["content"]
+        else:
+            reply = "Unexpected response format."
+
         st.session_state["history"].append(("assistant", reply))
         st.chat_message("assistant").write(reply)
 
